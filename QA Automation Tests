@@ -1,0 +1,115 @@
+
+# importing helpers and data to main.py
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import data
+import helpers
+from pages import UrbanRoutesPage
+
+
+#adding the setup class
+
+
+# moving the if statement from helpers.url_is_reachable to be inside the setup class
+
+class TestUrbanRoutes:
+    @classmethod
+    def setup_class(cls):
+        # do not modify - we need additional logging enabled in order to retrieve phone confirmation code
+        from selenium.webdriver import DesiredCapabilities
+        capabilities = DesiredCapabilities.CHROME
+        capabilities["goog:loggingPrefs"] = {'performance': 'ALL'}
+        cls.driver = webdriver.Chrome()
+        if url_is_reachable(URBAN_ROUTES_URL):
+            print("Connected to the Urban Routes server")
+        else:
+            print("Cannot connect to Urban Routes. Check the server is on and still running")
+    
+
+# replacing the stand in code with functional code
+    
+    def test_set_route(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+
+        assert routes_page.get_from() == data.ADDRESS_FROM
+        assert routes_page.get_to() == data.ADDRESS_TO
+        
+
+    def test_select_plan(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.select_supportive_plan()
+
+        assert routes_page.get_current_selected_plan() == 'Supportive'
+        
+
+    def test_fill_phone_number(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.fill_phone_number(data.PHONE_NUMBER)
+
+        assert routes_page.get_phone() == data.PHONE_NUMBER
+
+
+    def test_fill_card(self):
+        self.driver.maximize_window()
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.enter_card_number(data.CARD_NUMBER, data.CARD_CODE)
+
+        assert routes_page.get_current_payment_method() == 'Card'
+
+
+    def test_comment_for_driver(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.fill_message(data.MESSAGE_FOR_DRIVER)
+
+        assert routes_page.get_message() == data.MESSAGE_FOR_DRIVER
+
+
+    def test_order_blanket_and_hankercheifs(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.select_supportive_plan()
+        routes_page.order_b_and_h()
+
+        assert routes_page.get_blanket_and_handkerchiefs_option_checked()
+
+
+    def test_order_2_ice_creams(self):
+        self.driver.maximize_window()
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.select_supportive_plan()
+        number_of_ice_creams = 2
+        routes_page.add_ice_cream_two(number_of_ice_creams)
+
+        value = self.driver.find_element(By.CLASS_NAME, "counter-value").text
+        assert value == "2"
+
+
+    def test_car_search_model_appears(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        routes_page = UrbanRoutesPage(self.driver)
+        routes_page.set_route(data.ADDRESS_FROM, data.ADDRESS_TO)
+        routes_page.select_supportive_plan()
+        routes_page.fill_message(data.MESSAGE_FOR_DRIVER)
+        routes_page.order_taxi_blue()
+
+        assert routes_page.is_order_taxi_popup
+
+#adding the teardown class
+
+  @classmethod
+    def teardown_class(cls):
+        cls.driver.quit()
