@@ -1,0 +1,145 @@
+
+# adding the Selenium imports to the to of pages.py
+
+import time
+from selenium.webdriver import Keys
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.wait import WebDriverWait
+from helpers import retrieve_phone_code
+from selenium.webdriver.common.by import By
+
+# declaring a class called UrbanRoutesPage
+
+class UrbanRoutesPage:
+
+# adding the methods that use the selectors
+
+# Addresses
+    from_field = (By.ID, 'from')
+    to_field = (By.ID, 'to')
+# Tariff and call button
+    supportive_plan_card = (By.XPATH, '//div[contains(text(), "Supportive")]')
+    supportive_plan_card_parent = (By.XPATH, '//div[contains(text(), "Supportive")]//..')
+    active_plan_card = (By.XPATH, '//div[@class="tcard active"]//div[@class="tcard-title"]')
+    call_a_taxi_button = (By.XPATH, '//button[contains(text(), "Call a taxi")]')
+    phone_number_button = (By.XPATH, '//div[@class="np-text" and text()="Phone number"]')
+    payment_method_button = (By.XPATH, '//div[@class=pp-text and text()="Payment method"]')
+    CARD_ICON = (By.XPATH,'//img[@class="pp-img" and @alt="Icon" and @src="/static/media/card.411e0152.svg"]')
+    card_number_enter_button = (By.ID, 'number')
+    code_enter_button = (By.XPATH, '//input[@class="card-input" and @id="code"]')
+    message_to_driver = (By.ID, 'comment')
+    b_and_h_toggle = (By.XPATH, '//span[@class="slider round"]')
+    PHONE_NUMBER_ENTER_LOCATOR = (By.ID, 'phone')
+    PHONE_NUMBER_NEXT_LOCATOR = (By.XPATH, '//button[@class="button full" and text()="Next"]')
+    PHONE_NUMBER_CODE_LOCATOR = (By.XPATH, '//input[@id="code" and @class="input" and @type="text" and @placeholder="xxxx"]')
+    PHONE_NUMBER_CONFIRM_LOCATOR = (By.XPATH, '//button[@class="button full" and text()="Confirm"]')
+    PAYMENT_METHOD_LOCATOR = (By.XPATH, '//div[@class="pp-text" and text()="Payment method"]')
+    LINK_LOCATOR = (By.XPATH, '//button[contains(text(), "Link")]')
+    ORDER_LOCATOR = (By.XPATH, '//button[@class="smart-button"]')
+    ICE_CREAM_BUTTON_ONE= (By.XPATH, "//div[@class='counter-plus'][1]")
+    ICE_CREAM_COUNTER = (By.XPATH, "//div[@class='counter-value'][1]")
+    current_payment_method = (By.CLASS_NAME, 'pp-value-text')
+    option_switches = (By.CLASS_NAME, 'switch')
+    option_switches_inputs = (By.CLASS_NAME, 'switch-input')
+
+# adding the methods that use the selectors
+
+  def __init__(self, driver):
+  self.driver = driver
+
+# definitions for tests/asserts used in test_set_route
+  
+   def set_from(self, from_address):
+            from_field = WebDriverWait(self.driver, 3).until(
+                expected_conditions.visibility_of_element_located(self.from_field))
+
+            from_field.send_keys(from_address)
+
+    def set_to(self, to_address):
+            to_field = self.driver.find_element(*self.to_field)
+            to_field.send_keys(to_address)
+
+    def get_from(self):
+            return self.driver.find_element(*self.from_field).get_property('value')
+
+    def get_to(self):
+            return self.driver.find_element(*self.to_field).get_property('value')
+
+    def click_call_taxi_button(self):
+        self.driver.find_element(*self.call_a_taxi_button).click()
+
+    def set_route(self, from_address, to_address):
+            self.set_from(from_address)
+            self.set_to(to_address)
+            self.click_call_taxi_button()
+
+# definitions for tests/asserts used in test_select_plan
+
+    def select_supportive_plan(self):
+        self.driver.find_element(*self.supportive_plan_card).click()
+
+    def get_current_selected_plan(self):
+        return self.driver.find_element(*self.active_plan_card).text
+      
+# definitions for tests/asserts used in test_fill_phone_number
+
+    def fill_phone_number(self, phone_number):
+        self.driver.find_element(*self.phone_number_button).click()
+        self.driver.find_element(*self.PHONE_NUMBER_ENTER_LOCATOR).send_keys(phone_number)
+        self.driver.find_element(*self.PHONE_NUMBER_NEXT_LOCATOR).click()
+        code = retrieve_phone_code(self.driver)
+        self.driver.find_element(*self.PHONE_NUMBER_CODE_LOCATOR).send_keys(code)
+        self.driver.find_element(*self.PHONE_NUMBER_CONFIRM_LOCATOR).click()
+
+     def get_phone(self):
+            return self.driver.find_element(*self.PHONE_NUMBER_ENTER_LOCATOR).get_property('value')
+
+# definitions for tests/asserts used in test_fill_card
+
+    def enter_card_number(self, card_number, card_code):
+        self.driver.find_element(*self.PAYMENT_METHOD_LOCATOR).click()
+        self.driver.find_element(*self.CARD_ICON).click()
+        self.driver.find_element(*self.card_number_enter_button).send_keys(card_number)
+        self.driver.find_element(*self.code_enter_button).send_keys(card_code)
+        self.driver.find_element(*self.code_enter_button).send_keys(Keys.TAB)
+        self.driver.find_element(*self.LINK_LOCATOR).click()
+
+    def get_current_payment_method(self):
+        return self.driver.find_element(*self.current_payment_method).text
+
+# definitions for tests/asserts used in test_comment_for_driver
+
+    def fill_message(self, MESSAGE_FOR_DRIVER):
+        self.driver.find_element(*self.message_to_driver).send_keys(MESSAGE_FOR_DRIVER)
+      
+    def get_message(self):
+        return self.driver.find_element(*self.message_to_driver).get_property('value')
+
+# definitions for tests/asserts used in test_order_blanket_and_hankercheifs
+
+    def order_b_and_h(self):
+        self.driver.find_element(*self.b_and_h_toggle).click()
+
+    def get_blanket_and_handkerchiefs_option_checked(self):
+        switches = self.driver.find_elements(*self.option_switches_inputs)
+        return switches[0].get_property('checked')
+
+# definition for test used in test_order_2_ice_creams (assert is in main.py)
+
+    def add_ice_cream_two(self,amount:int):
+        option_add_controls = self.driver.find_elements(*self.ICE_CREAM_BUTTON_ONE)
+        self.driver.execute_script("arguments[0].scrollIntoView();", option_add_controls[0])
+        for i in range(amount):
+            option_add_controls[0].click()
+
+# definitions for tests/asserts used in test_car_search_model_appears
+
+    def order_taxi_blue(self):
+        self.driver.find_element(*self.ORDER_LOCATOR).click()
+    
+    def is_order_taxi_popup(self):
+        try:
+            popup_element = self.driver.find_element_by_id("ORDER_LOCATOR")
+            return popup_element.is_displayed()
+        except Exception:
+            return False
